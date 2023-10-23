@@ -119,8 +119,7 @@ def evaluate_purchases(purchases):
         # Round to the nearest finney
         balance_to_add = (p["value"] * rate // 10**5) * 10**15
         balances[p["addr"]] = balances.get(p["addr"], 0) + balance_to_add
-    o = {k: {"wei": str(v)} for k, v in balances.items()}
-    return o
+    return {k: {"wei": str(v)} for k, v in balances.items()}
 
 
 def evaluate():
@@ -130,8 +129,7 @@ def evaluate():
     sys.stderr.write('Gathered txs and heights\n')
     p = list_purchases(th)
     sys.stderr.write('Listed purchases\n')
-    o = evaluate_purchases(p)
-    return o
+    return evaluate_purchases(p)
 
 if __name__ == '__main__':
     print json.dumps(evaluate(), indent=4)

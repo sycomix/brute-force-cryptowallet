@@ -183,53 +183,48 @@ class Keccak:
   # This is a disgusting piece of code. Clean it.
   @staticmethod
   def pad10star1(M, n):
-    """Pad M with the pad10*1 padding rule to reach a length multiple of r bits
+      """Pad M with the pad10*1 padding rule to reach a length multiple of r bits
 
     M: message pair (length in bits, string of hex characters ('9AFC...')
     n: length in bits (must be a multiple of 8)
     Example: pad10star1([60, 'BA594E0FB9EBBD30'],8) returns 'BA594E0FB9EBBD93'
     """
 
-    [my_string_length, my_string] = M
+      [my_string_length, my_string] = M
 
-    # Check the parameter n
-    if n % 8 != 0:
-      raise KeccakError.KeccakError("n must be a multiple of 8")
+      # Check the parameter n
+      if n % 8 != 0:
+        raise KeccakError.KeccakError("n must be a multiple of 8")
 
-    # Check the length of the provided string
-    if len(my_string) % 2 != 0:
-      #Pad with one '0' to reach correct length (don't know test
-      #vectors coding)
-      my_string += '0'
-    if my_string_length > (len(my_string) // 2 * 8):
-      raise KeccakError.KeccakError("the string is too short to contain the number of bits announced")
+      # Check the length of the provided string
+      if len(my_string) % 2 != 0:
+        #Pad with one '0' to reach correct length (don't know test
+        #vectors coding)
+        my_string += '0'
+      if my_string_length > (len(my_string) // 2 * 8):
+        raise KeccakError.KeccakError("the string is too short to contain the number of bits announced")
 
-    nr_bytes_filled = my_string_length // 8
-    nbr_bits_filled = my_string_length % 8
-    l = my_string_length % n
-    if ((n - 8) <= l <= (n - 2)):
+      nr_bytes_filled = my_string_length // 8
+      nbr_bits_filled = my_string_length % 8
+      l = my_string_length % n
       if (nbr_bits_filled == 0):
         my_byte = 0
       else:
         my_byte = int(my_string[nr_bytes_filled * 2:nr_bytes_filled * 2 + 2], 16)
-      my_byte = (my_byte >> (8 - nbr_bits_filled))
-      my_byte = my_byte + 2 ** (nbr_bits_filled) + 2 ** 7
-      my_byte = "%02X" % my_byte
-      my_string = my_string[0:nr_bytes_filled * 2] + my_byte
-    else:
-      if (nbr_bits_filled == 0):
-        my_byte = 0
+      my_byte >>= 8 - nbr_bits_filled
+      if ((n - 8) <= l <= (n - 2)):
+          my_byte = my_byte + 2 ** (nbr_bits_filled) + 2 ** 7
+          my_byte = "%02X" % my_byte
+          my_string = my_string[:nr_bytes_filled * 2] + my_byte
       else:
-        my_byte = int(my_string[nr_bytes_filled * 2:nr_bytes_filled * 2 + 2], 16)
-      my_byte = (my_byte >> (8 - nbr_bits_filled))
-      my_byte = my_byte + 2 ** (nbr_bits_filled)
-      my_byte = "%02X" % my_byte
-      my_string = my_string[0:nr_bytes_filled * 2] + my_byte
-      while((8 * len(my_string) // 2) % n < (n - 8)):
-        my_string = my_string + '00'
-      my_string = my_string + '80'
+          my_byte += 2 ** (nbr_bits_filled)
+          my_byte = "%02X" % my_byte
+          my_string = my_string[:nr_bytes_filled * 2] + my_byte
+          while ((8 * len(my_string) // 2) % n < (n - 8)):
+              my_string = f'{my_string}00'
+          my_string = f'{my_string}80'
 
-    return my_string
+      return my_string
 
   def update(self, arg):
     # Update the hash object with the string arg. Repeated calls are equivalent to a single call with the concatenation of all the arguments: m.update(a); m.update(b) is equivalent to m.update(a+b). arg is a normal bytestring.

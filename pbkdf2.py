@@ -112,19 +112,21 @@ def pbkdf2_hash(s):
     salt = randstr(16)
     iters = 10000
     h = b64encode(_pbkdf2(password=s, salt=salt, iterations=iters))
-    return r'{}${}${}${}'.format(_name, iters, salt, h.decode('ascii'))
+    return f"{_name}${iters}${salt}${h.decode('ascii')}"
 
 def pbkdf2_verify(s, h):
     parts = h.split('$')
     if len(parts) != 4:
-        raise ValueError('invalid comparison hash (bad number of parts): {}'.format(h))
+        raise ValueError(f'invalid comparison hash (bad number of parts): {h}')
     if parts[0] != _name:
-        raise ValueError('invalid comparison hash, only {} is supported, got: {}'.format(_name, parts[0]))
+        raise ValueError(
+            f'invalid comparison hash, only {_name} is supported, got: {parts[0]}'
+        )
     salt = parts[2]
     try:
         iters = int(parts[1])
     except ValueError:
-        raise ValueError('invalid comparison hash (bad iter count): {}'.format(h))
+        raise ValueError(f'invalid comparison hash (bad iter count): {h}')
     c = _pbkdf2(password=s, salt=salt, iterations=iters)
     return c == b64decode(parts[3].encode())
 

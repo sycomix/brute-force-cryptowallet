@@ -73,13 +73,12 @@ except:
 def openssl_tx_sign(tx, priv):
     if len(priv) == 64:
         priv = priv.decode('hex')
-    if openssl:
-        k = openssl.CKey()
-        k.generate(priv)
-        u = k.sign(bitcoin.bin_txhash(tx))
-        return u.encode('hex')
-    else:
+    if not openssl:
         return ecdsa_tx_sign(tx, priv)
+    k = openssl.CKey()
+    k.generate(priv)
+    u = k.sign(bitcoin.bin_txhash(tx))
+    return u.encode('hex')
 
 
 def secure_sign(tx, i, priv):
@@ -100,12 +99,11 @@ def secure_sign(tx, i, priv):
 def secure_privtopub(priv):
     if len(priv) == 64:
         return secure_privtopub(priv.decode('hex')).encode('hex')
-    if openssl:
-        k = openssl.CKey()
-        k.generate(priv)
-        return k.get_pubkey()
-    else:
+    if not openssl:
         return privtopub(priv)
+    k = openssl.CKey()
+    k.generate(priv)
+    return k.get_pubkey()
 
 
 def tryopen(f):
@@ -115,7 +113,7 @@ def tryopen(f):
         try:
             return json.loads(t)
         except:
-            raise Exception("Corrupted file: "+f)
+            raise Exception(f"Corrupted file: {f}")
     except:
         return None
 
@@ -174,8 +172,7 @@ def crack(wallet_filename, grammar):
 def generate_all(el, tr):
     if el:
         for j in xrange(len(el[0])):
-            for w in generate_all(el[1:], tr + el[0][j]):
-                yield w
+            yield from generate_all(el[1:], tr + el[0][j])
     else:
         yield tr
 
